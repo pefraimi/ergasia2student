@@ -159,8 +159,9 @@ def run_moran_game(p):
             traceback.print_exc()
             sys.exit(f'Error: unexpected type: {type}')
 
+        type_from = types.get(move, None)
         nx.set_node_attributes(G, {move: node_type}, name="types")
-        game_info.history.append(game_move(step, node_type, random_node, move))
+        game_info.history.append(game_move(step, node_type, random_node, move, type_from))
         counter, num_of_types, distinct_keys, distinct_counts = game_info.get_number_of_active_players()
         step += 1
 
@@ -183,7 +184,7 @@ def run_moran_game(p):
 # run_moran_game(Parameters(3, 20, 2, 123, False))
 # run_moran_game(Parameters(3, 20, 2, 123, True))
 # run_moran_game(Parameters(4, 20, 2, 123, True))
-run_moran_game(Parameters(num_of_players=4, n=20, m=2, seed=123, interactive=False))
+
 # run_moran_game(Parameters(2, 30, 2, 123, False))
 # run_moran_game(Parameters(2, 50, 2, 123, False))
 # run_moran_game(Parameters(2, 150, 2, 123, False))
@@ -194,9 +195,10 @@ run_moran_game(Parameters(num_of_players=4, n=20, m=2, seed=123, interactive=Fal
 # run_moran_game(Parameters(2, 1000, 5, 123, False))
 # run_moran_game(Parameters(2, 1000, 5, 345, False))
 
-run_moran_game(Parameters(4, 20, 2, 123, True))
-run_moran_game(Parameters(4, 50, 2, 123, True))
-run_moran_game(Parameters(4, 100, 2, 123, True))
-run_moran_game(Parameters(4, 200, 2, 123, True))
-run_moran_game(Parameters(4, 500, 2, 123, True))
-run_moran_game(Parameters(4, 1000, 2, 123, True))
+run_moran_game(Parameters(num_of_players=4, n=20, m=2, seed=123, interactive=False))
+# run_moran_game(Parameters(4, 20, 2, 123, True))
+# run_moran_game(Parameters(4, 50, 2, 123, True))
+# run_moran_game(Parameters(4, 100, 2, 123, True))
+# run_moran_game(Parameters(4, 200, 2, 123, True))
+# run_moran_game(Parameters(4, 500, 2, 123, True))
+# run_moran_game(Parameters(4, 1000, 2, 123, True))

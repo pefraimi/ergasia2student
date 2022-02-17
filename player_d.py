@@ -5,7 +5,6 @@ from player import Player
 
 
 class PlayerD(Player):
-    # def initialize(self, g, p, id, my_type, player_seed) -> None:
     def initialize(self, game_info, id, my_type, player_seed) -> None:
         # This function is called once before the game starts.
         # Can be used for initializing auxiliary data of the player

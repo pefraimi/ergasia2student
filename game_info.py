@@ -4,7 +4,7 @@ from typing import List, Dict, TypedDict
 
 import networkx as nx
 
-game_move = collections.namedtuple('game_move', ('step', 'player_type', 'node_from', 'node_to'))
+game_move = collections.namedtuple('game_move', ('step', 'player_type', 'node_from', 'node_to', 'type_from'))
 
 class Game_Info:
     g: nx.graph # The graph/network of the game
