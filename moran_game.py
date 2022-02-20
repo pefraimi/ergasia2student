@@ -4,6 +4,7 @@ import random
 import sys
 import time
 import traceback
+from itertools import permutations
 from typing import List
 
 import seaborn as sns  # for color palettes
@@ -36,7 +37,7 @@ def draw_graph(g, node_pos, player_runtimes, counter):
         id = player_runtime.id
         player_label = player_runtime.player_type
         num = counter[player_label]
-        num_str = str(num).rjust(4)
+        num_str = str(num).rjust(5)
         str_label = player_label + num_str
         str_name = '(' + player_runtime.player.name + ')'
         legend_label = str_label + ' ' + str_name.rjust(10)
@@ -102,7 +103,7 @@ def run_moran_game(p):
         set_i = set(nodes_i)
         nodes_of_player[i] = set_i
         for v in set_i:
-            node_type[v] = i
+            node_type[v] = p.assignment[i]
         unassigned_nodes = set(unassigned_nodes) - set_i
 
     if len(unassigned_nodes) > 0:
@@ -129,9 +130,9 @@ def run_moran_game(p):
     for i, player_runtime in enumerate(player_runtimes.values()):
         # for player_type in player_classes:
         player_runtime.player = player_runtime.player_class()
-        player_runtime.id = i
-        player_runtime.player_type = p.player_labels[i]
-        player_from_type[player_runtime.player_type] = i
+        player_runtime.id = assignment[i]
+        player_runtime.player_type = p.player_labels[assignment[i]]
+        player_from_type[player_runtime.player_type] = assignment[i]
 
     # Initialize players
     for player_runtime in player_runtimes.values():
@@ -144,7 +145,8 @@ def run_moran_game(p):
         pos = nx.spring_layout(G)
 
     step = 0
-    while True:
+    end_loop = False
+    while not end_loop:
         random_node = get_random_node(G, rng)
         types = nx.get_node_attributes(G, "types")
         node_type = types[random_node][0]
@@ -170,13 +172,47 @@ def run_moran_game(p):
             input("Press Enter to continue...")
             # time.sleep(0.1)
 
-        if num_of_types == 1 or step >= 500:
-            print(f'Maximum number of steps reached')
-            print(f'Parameters {p}, Fixation {distinct_keys} {distinct_counts} after {step} number of steps!')
-            if not p.interactive:
-                pos = nx.spring_layout(G)
-                draw_graph(G, pos, player_runtimes, counter)
-            return list(distinct_keys)[0], step
+        if num_of_types == 1:
+            end_loop = True
+        elif p.steps is not None and step >= p.steps:
+            # print(f'Maximum number of steps reached')
+            end_loop = True
+
+        if end_loop:
+            # print(f'Parameters {p}, Fixation {distinct_keys} {distinct_counts} after {step} number of steps!')
+            counters = {}
+            for i in range(p.num_of_players):
+                player_runtime=player_runtimes[i]
+                counters[player_runtime.player.name + ':' + player_runtime.player.my_type] = counter[player_runtime.player_type]
+            # print(counters)
+            if num_of_types == 1:
+                node_types = nx.get_node_attributes(G, "types")
+                player_type = node_types[0]
+                player_id = player_from_type[player_type]
+                player_name = player_runtimes[player_id].player.name
+                fixation_info:str = player_name
+            else:
+                fixation_info: str = '-'
+            # leading player
+            max_value = max(distinct_counts)
+            # max_index = distinct_counts.index(max_value)
+            indices = [index for index, value in enumerate(distinct_counts) if value == max_value]
+            winner_info:str = ""
+            for player_index in indices:
+                player_type = list(distinct_keys)[player_index]
+                player_id = player_from_type[player_type]
+                player_name = player_runtimes[player_id].player.name
+                winner_info += player_name + " "
+            result:str = f'Parameters: {p}, Fixation: {fixation_info.center(10, " ")}, Winner: {winner_info}, {step}: steps! '
+            for s in counters.keys():
+                result += s + ':' + str(counters[s]) + ','
+            # print(f'Parameters {p}, Fixation {distinct_keys} {distinct_counts} after {step} number of steps!')
+            # if not p.interactive:
+            #     pos = nx.spring_layout(G)
+            #     draw_graph(G, pos, player_runtimes, counter)
+            # return list(distinct_keys)[0], step
+            return result
+
 
 
 # run_moran_game(Parameters(2, 20, 2, 123, True))
@@ -195,10 +231,30 @@ def run_moran_game(p):
 # run_moran_game(Parameters(2, 1000, 5, 123, False))
 # run_moran_game(Parameters(2, 1000, 5, 345, False))
 
-run_moran_game(Parameters(num_of_players=4, n=20, m=2, seed=123, interactive=False))
+# run_moran_game(Parameters(num_of_players=4, n=20, m=2, seed=123, interactive=False))
 # run_moran_game(Parameters(4, 20, 2, 123, True))
 # run_moran_game(Parameters(4, 50, 2, 123, True))
 # run_moran_game(Parameters(4, 100, 2, 123, True))
 # run_moran_game(Parameters(4, 200, 2, 123, True))
 # run_moran_game(Parameters(4, 500, 2, 123, True))
 # run_moran_game(Parameters(4, 1000, 2, 123, True))
+
+
+# assignment = (0, 3, 1, 2)
+# print(run_moran_game(Parameters(num_of_players=4, n=100, m=2, steps=10000, assignment=assignment, seed=123, interactive=False)))
+
+# for x in permutations(range(1, 4)):
+#     assignment = ((0,) + x)
+#     print(run_moran_game(Parameters(num_of_players=4, n=100, m=2, steps=10000, assignment=assignment, seed=123, interactive=False)))
+
+for x in permutations(range(0, 4)):
+    assignment = x
+    print(run_moran_game(Parameters(num_of_players=4, n=20, m=2, steps=10000, assignment=assignment, seed=123, interactive=False)))
+
+for x in permutations(range(0, 4)):
+    assignment = x
+    print(run_moran_game(Parameters(num_of_players=4, n=100, m=2, steps=10000, assignment=assignment, seed=123, interactive=False)))
+#
+for x in permutations(range(0, 4)):
+    assignment = x
+    print(run_moran_game(Parameters(num_of_players=4, n=1000, m=2, steps=10000, assignment=assignment, seed=1234, interactive=False)))
